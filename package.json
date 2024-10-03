@@ -1,0 +1,42 @@
+{
+  "name": "@eventcatalog/generator-eventbridge",
+  "version": "0.0.2",
+  "description": "Amazon EventBridge generator for EventCatalog",
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest",
+    "format": "prettier --write .",
+    "changeset": "changeset",
+    "format:diff": "prettier --list-different .",
+    "release": "changeset publish"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "Dual License",
+  "devDependencies": {
+    "@smithy/types": "^3.5.0",
+    "@types/node": "^20.16.1",
+    "prettier": "^3.3.3",
+    "tsup": "^8.1.0",
+    "typescript": "^5.5.3",
+    "vitest": "^2.0.2"
+  },
+  "files": [
+    "dist",
+    "package.json"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "@aws-sdk/client-eventbridge": "^3.658.1",
+    "@aws-sdk/client-schemas": "^3.658.1",
+    "@aws-sdk/util-arn-parser": "^3.568.0",
+    "@changesets/cli": "^2.27.8",
+    "@eventcatalog/sdk": "^0.1.4",
+    "chalk": "^4"
+  }
+}
