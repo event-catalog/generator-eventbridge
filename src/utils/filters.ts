@@ -3,14 +3,14 @@ import { Event, Filter } from '../types';
 const createFilterFunction = (filterKey: 'detailType' | 'prefix' | 'suffix' | 'source') => {
   return (filters: Filter[]) => {
     return (events: Event[]) => {
-      if (!filters.some(filter => filter[filterKey])) {
+      if (!filters.some((filter) => filter[filterKey])) {
         return []; // if no filters for this key, return empty array
       }
-      return events.filter(event => {
-        return filters.some(filter => {
+      return events.filter((event) => {
+        return filters.some((filter) => {
           if (!filter[filterKey]) return false;
           const filterValues = Array.isArray(filter[filterKey]) ? filter[filterKey] : [filter[filterKey]];
-          return filterValues.some(value => {
+          return filterValues.some((value) => {
             switch (filterKey) {
               case 'detailType':
                 return event.detailType === value;
@@ -35,9 +35,9 @@ const bySource = createFilterFunction('source');
 
 export const filterEvents = (events: Event[], filters: Filter[]) => {
   const filterFunctions = [byDetailType, byPrefix, bySuffix, bySource];
-  const filteredResults = filterFunctions.map(filterFn => filterFn(filters)(events));
-  
+  const filteredResults = filterFunctions.map((filterFn) => filterFn(filters)(events));
+
   return filteredResults.reduce((acc, curr) => {
-    return acc.concat(curr.filter(event => !acc.includes(event)));
+    return acc.concat(curr.filter((event) => !acc.includes(event)));
   }, []);
 };

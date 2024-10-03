@@ -9,7 +9,7 @@ export type Event = {
   source: string;
   detailType: string;
   jsonSchema: any;
-  openApiSchema: any
+  openApiSchema: any;
   version?: string;
   createdDate?: Date;
   versionCount?: number;
@@ -17,7 +17,7 @@ export type Event = {
   accountId?: string;
   jsonDraftFileName: string;
   openApiFileName: string;
-}
+};
 
 export type Domain = {
   id: string;
@@ -31,21 +31,21 @@ export type Filter = {
   suffix?: string | string[];
   includes?: string;
   detailType?: string | string[];
-}
+};
 
 export type Service = {
   id: string;
-  sends?: Filter[],
-  receives?: Filter[],
+  sends?: Filter[];
+  receives?: Filter[];
   version: string;
 };
 
 export type GeneratorProps = {
-  region: string,
-  registryName: string,
-  eventBusName?: string,
-  services?: Service[],
-  domain?: Domain
+  region: string;
+  registryName: string;
+  eventBusName?: string;
+  services?: Service[];
+  domain?: Domain;
   debug?: boolean;
-  credentials?: AwsCredentialIdentity | AwsCredentialIdentityProvider
+  credentials?: AwsCredentialIdentity | AwsCredentialIdentityProvider;
 };

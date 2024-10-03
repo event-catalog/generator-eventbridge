@@ -17,7 +17,11 @@ import { defaultMarkdown as generateMarkdownForDomain } from './utils/domains';
 import { defaultMarkdown as generateMarkdownForMessage, getBadgesForMessage } from './utils/messages';
 import { parse } from '@aws-sdk/util-arn-parser';
 
-async function tryFetchJSONSchema(schemasClient: SchemasClient, registryName: string, schemaName: string): Promise<string | null> {
+async function tryFetchJSONSchema(
+  schemasClient: SchemasClient,
+  registryName: string,
+  schemaName: string
+): Promise<string | null> {
   try {
     const exportSchemaCommand = new ExportSchemaCommand({
       RegistryName: registryName,
@@ -75,13 +79,12 @@ const fetchSchemasForRegistry =
     console.log(chalk.green(`Fetching EventBridge schemas...`));
 
     for (const schema of allSchemas) {
-
-      if(!schema.SchemaName){
+      if (!schema.SchemaName) {
         console.log(`Skipping schema ${schema.SchemaName} as it has no name`);
         continue;
       }
 
-      const jsonSchema =  await tryFetchJSONSchema(schemasClient, registryName, schema.SchemaName);
+      const jsonSchema = await tryFetchJSONSchema(schemasClient, registryName, schema.SchemaName);
       const openApiSchema = await tryFetchOpenAPISchema(schemasClient, registryName, schema.SchemaName);
 
       if ((jsonSchema === null && openApiSchema === null) || !schema.SchemaName) {
@@ -217,7 +220,10 @@ export default async (config: EventCatalogConfig, options: GeneratorProps) => {
     let serviceSpecifications = {};
     let serviceSpecificationsFiles = [];
     let sends = sendsEvents.map((event) => ({ id: event.detailType || event.schemaName, version: event.version || 'latest' }));
-    let receives = receivesEvents.map((event) => ({ id: event.detailType || event.schemaName, version: event.version || 'latest' }));
+    let receives = receivesEvents.map((event) => ({
+      id: event.detailType || event.schemaName,
+      version: event.version || 'latest',
+    }));
     let owners = [] as any;
 
     console.log(chalk.blue(`Processing service: ${service.id} (v${service.version})`));
@@ -261,7 +267,6 @@ export default async (config: EventCatalogConfig, options: GeneratorProps) => {
   console.log(chalk.green(`\nFinished generating event catalog with EventBridge schema registry ${options.registryName}`));
 
   await checkLicense();
-
 };
 
 const processEvents = async (events: Event[], options: GeneratorProps) => {
@@ -276,10 +281,9 @@ const processEvents = async (events: Event[], options: GeneratorProps) => {
   const { getEvent, writeEvent, addSchemaToEvent, rmEventById, versionEvent } = utils(eventCatalogDirectory);
 
   for (const event of events) {
-
     // in custom registries detailType is not a value, so we use schema name
     console.log(chalk.blue(`Processing event: ${event.id} (v${event.version})`));
-    
+
     const schemaPath = event.jsonSchema ? event.jsonDraftFileName : event.openApiSchema ? event.openApiFileName : '';
     let messageMarkdown = generateMarkdownForMessage(event);
     const catalogedEvent = await getEvent(event.id, event.version);
@@ -318,6 +322,5 @@ const processEvents = async (events: Event[], options: GeneratorProps) => {
       await addSchemaToEvent(event.id, { fileName: event.openApiFileName, schema: event.openApiSchema });
       console.log(chalk.cyan(` - Schema added to event (v${event.version})`));
     }
-
   }
 };
