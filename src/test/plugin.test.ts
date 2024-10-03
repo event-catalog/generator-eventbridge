@@ -62,9 +62,7 @@ const setupMocks = () => {
       ExportSchemaCommand: vi.fn(),
     };
   });
-
 };
-
 
 // Fake eventcatalog config
 const config = {
@@ -695,8 +693,12 @@ describe('EventBridge EventCatalog Plugin', () => {
         const userSignedUp = await getEvent('UserSignedUp');
 
         expect(userSignedUp.schemaPath).toEqual('myapp.users@UserSignedUp-jsondraft.json');
-        const jsonDraftSchema = await fs.readFile(join(catalogDir, 'events', 'UserSignedUp', 'myapp.users@UserSignedUp-jsondraft.json'));
-        const openAPISchema = await fs.readFile(join(catalogDir, 'events', 'UserSignedUp', 'myapp.users@UserSignedUp-openapi.json'));
+        const jsonDraftSchema = await fs.readFile(
+          join(catalogDir, 'events', 'UserSignedUp', 'myapp.users@UserSignedUp-jsondraft.json')
+        );
+        const openAPISchema = await fs.readFile(
+          join(catalogDir, 'events', 'UserSignedUp', 'myapp.users@UserSignedUp-openapi.json')
+        );
 
         expect(jsonDraftSchema).toBeDefined();
         expect(openAPISchema).toBeDefined();
@@ -705,9 +707,7 @@ describe('EventBridge EventCatalog Plugin', () => {
   });
 
   describe('events', () => {
-
     it('when a message is written to EventCatalog the version number is taken from the schema VersionCount', async () => {
-
       const { writeEvent, getEvent } = utils(catalogDir);
 
       await plugin(config, {
@@ -725,7 +725,6 @@ describe('EventBridge EventCatalog Plugin', () => {
       const versionedEvent = await getEvent('OrderPlaced', '10');
 
       expect(versionedEvent).toBeDefined();
-
     });
 
     it('when the message already exists in EventCatalog but the versions do not match, the existing message is versioned', async () => {
@@ -890,45 +889,46 @@ describe('EventBridge EventCatalog Plugin', () => {
       const { writeEvent, getEvent } = utils(catalogDir);
 
       // Override the mock for this specific test
-      vi.mocked(SchemasClient).mockImplementation(() => ({
-        send: vi.fn((command) => {
-          if (command instanceof ListSchemasCommand) {
-            return Promise.resolve({
-              Schemas: [
-                { SchemaName: 'SchemaWithoutSourceAndDetailType', VersionCount: 1 },
-              ],
-            });
-          }
-          if (command instanceof ExportSchemaCommand) {
-            return Promise.resolve({
-              Content: JSON.stringify({
-                type: 'object',
-                properties: {
-                  detail: {
+      vi.mocked(SchemasClient).mockImplementation(
+        () =>
+          ({
+            send: vi.fn((command) => {
+              if (command instanceof ListSchemasCommand) {
+                return Promise.resolve({
+                  Schemas: [{ SchemaName: 'SchemaWithoutSourceAndDetailType', VersionCount: 1 }],
+                });
+              }
+              if (command instanceof ExportSchemaCommand) {
+                return Promise.resolve({
+                  Content: JSON.stringify({
                     type: 'object',
                     properties: {
-                      key1: { type: 'string' },
-                      key2: { type: 'number' },
+                      detail: {
+                        type: 'object',
+                        properties: {
+                          key1: { type: 'string' },
+                          key2: { type: 'number' },
+                        },
+                      },
                     },
-                  },
-                },
-              }),
-            });
-          }
-          if (command instanceof DescribeSchemaCommand) {
-            return Promise.resolve({
-              Content: JSON.stringify({
-                openapi: '3.0.0',
-                info: { title: 'Test Schema', version: '1.0.0' },
-                paths: {},
-              }),
-              SchemaVersion: '1',
-              LastModified: new Date('2023-01-01'),
-            } as DescribeSchemaCommandOutput);
-          }
-          return Promise.reject(new Error('Command not mocked'));
-        }),
-      } as unknown as SchemasClient));
+                  }),
+                });
+              }
+              if (command instanceof DescribeSchemaCommand) {
+                return Promise.resolve({
+                  Content: JSON.stringify({
+                    openapi: '3.0.0',
+                    info: { title: 'Test Schema', version: '1.0.0' },
+                    paths: {},
+                  }),
+                  SchemaVersion: '1',
+                  LastModified: new Date('2023-01-01'),
+                } as DescribeSchemaCommandOutput);
+              }
+              return Promise.reject(new Error('Command not mocked'));
+            }),
+          }) as unknown as SchemasClient
+      );
 
       await plugin(config, {
         region: 'us-east-1',
@@ -945,9 +945,6 @@ describe('EventBridge EventCatalog Plugin', () => {
       const event = await getEvent('SchemaWithoutSourceAndDetailType');
 
       expect(event).toBeDefined();
-
     });
-
-
   });
 });

@@ -11,7 +11,7 @@ const getSchemaURL = (event: Event) => {
 };
 
 const getSchemaDownloadURL = (event: Event) => {
-  if(event.jsonSchema) {
+  if (event.jsonSchema) {
     return `/generated/events/${event.id}/${event.jsonDraftFileName}`;
   }
   return `/generated/events/${event.id}/${event.openApiFileName}`;
@@ -36,26 +36,33 @@ Documentation for the Amazon EventBridge event ${event.id}.
 
 ## Schemas
 
-${event.jsonSchema ? `
+${
+  event.jsonSchema
+    ? `
 ### JSON Schema
 <SchemaViewer file="${event.jsonDraftFileName}" title="Event Schema" maxHeight="500" />
-` : ''}
+`
+    : ''
+}
 
-${event.openApiSchema ? `
+${
+  event.openApiSchema
+    ? `
 ### OpenAPI Schema
 \`\`\`json title="OpenAPI Schema"
 ${JSON.stringify(JSON.parse(event.openApiSchema), null, 2)}
 \`\`\`  
-` : ''}
+`
+    : ''
+}
 
 `;
 };
 
 export const getBadgesForMessage = (event: Event, eventBus?: string) => {
+  let badges = [];
 
-  let badges = []
-
-  if(eventBus) {
+  if (eventBus) {
     badges.push({ content: `Bus: ${eventBus}`, backgroundColor: 'pink', textColor: 'pink' });
   }
 
@@ -64,5 +71,4 @@ export const getBadgesForMessage = (event: Event, eventBus?: string) => {
   badges.push({ content: `Schema name: ${event.schemaName}`, backgroundColor: 'pink', textColor: 'pink' });
 
   return badges;
-
 };
