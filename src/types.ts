@@ -40,6 +40,8 @@ export type Service = {
   version: string;
 };
 
+export type EventMap = 'detail-type' | 'schema-name';
+
 export type GeneratorProps = {
   region: string;
   registryName: string;
@@ -47,5 +49,6 @@ export type GeneratorProps = {
   services?: Service[];
   domain?: Domain;
   debug?: boolean;
+  mapEventsBy?: EventMap;
   credentials?: AwsCredentialIdentity | AwsCredentialIdentityProvider;
 };
