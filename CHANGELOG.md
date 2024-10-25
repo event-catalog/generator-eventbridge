@@ -1,5 +1,11 @@
 # @eventcatalog/generator-eventbridge
 
+## 1.1.0
+
+### Minor Changes
+
+- 27e8667: chore(plugin): updated eventcatalog sdk version
+
 ## 1.0.0
 
 ### Major Changes
