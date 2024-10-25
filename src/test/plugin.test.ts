@@ -865,6 +865,26 @@ describe('EventBridge EventCatalog Plugin', () => {
       ]);
     });
 
+    it('when mapEventsBy is set to "schema-name" the schema name is used as the event id', async () => {
+      const { getEvent } = utils(catalogDir);
+
+      await plugin(config, {
+        region: 'us-east-1',
+        registryName: 'discovered-schemas',
+        services: [
+          {
+            id: 'Orders Service',
+            version: '1.0.0',
+            sends: [{ source: ['myapp.orders'] }],
+          },
+        ],
+        mapEventsBy: 'schema-name',
+      });
+
+      const versionedEvent = await getEvent('myapp.orders@OrderPlaced', '10');
+      expect(versionedEvent).toBeDefined();
+    });
+
     describe('events without services', () => {
       it('if no services or domains are provided all the messages are added to EventCatalog without a service', async () => {
         const { getEvent } = utils(catalogDir);

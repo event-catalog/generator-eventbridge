@@ -8,7 +8,7 @@ import {
   DescribeSchemaCommandOutput,
   SchemaSummary,
 } from '@aws-sdk/client-schemas';
-import { EventCatalogConfig, Event, GeneratorProps } from './types';
+import { EventCatalogConfig, Event, GeneratorProps, EventMap } from './types';
 import { filterEvents } from './utils/filters';
 import checkLicense from './checkLicense';
 
@@ -60,7 +60,7 @@ async function tryFetchOpenAPISchema(
 
 const fetchSchemasForRegistry =
   (schemasClient: SchemasClient) =>
-  async (registryName: string): Promise<Event[]> => {
+  async (registryName: string, mapEventsBy: EventMap): Promise<Event[]> => {
     // Get all schemas from discovered-schemas
     const schemas = [] as Event[];
     let allSchemas: SchemaSummary[] = [];
@@ -99,9 +99,11 @@ const fetchSchemasForRegistry =
       // ARN?
       const arn = schema.SchemaArn ? parse(schema.SchemaArn) : undefined;
 
+      // in custom registries detailType is not a value, so we use schema name
+      const id = mapEventsBy === 'detail-type' ? detailType || schema.SchemaName : schema.SchemaName;
+
       schemas.push({
-        // in custom registries detailType is not a value, so we use schema name
-        id: detailType || schema.SchemaName,
+        id,
         schemaName: schema.SchemaName,
         registryName: registryName,
         source,
@@ -127,7 +129,7 @@ const fetchSchemasForRegistry =
 export default async (config: EventCatalogConfig, options: GeneratorProps) => {
   // This is set by EventCatalog. This is the directory where the catalog is stored
   const eventCatalogDirectory = process.env.PROJECT_DIR;
-  const { services, region } = options;
+  const { services, region, mapEventsBy = 'detail-type' } = options;
   const schemasClient = new SchemasClient({ region, credentials: config.credentials });
 
   if (!eventCatalogDirectory) {
@@ -147,7 +149,7 @@ export default async (config: EventCatalogConfig, options: GeneratorProps) => {
     rmServiceById,
   } = utils(eventCatalogDirectory);
 
-  const events = await fetchSchemasForRegistry(schemasClient)(options.registryName);
+  const events = await fetchSchemasForRegistry(schemasClient)(options.registryName, mapEventsBy);
 
   // If no domain or services, just write all messages to catalog.
   if (!options.domain && !options.services) {
