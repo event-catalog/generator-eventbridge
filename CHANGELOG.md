@@ -1,5 +1,11 @@
 # @eventcatalog/generator-eventbridge
 
+## 1.0.0
+
+### Major Changes
+
+- fedb540: chore(plugin): releasing major version
+
 ## 0.0.3
 
 ### Patch Changes
