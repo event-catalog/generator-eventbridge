@@ -1,5 +1,11 @@
 # @eventcatalog/generator-eventbridge
 
+## 1.2.0
+
+### Minor Changes
+
+- 6176a7c: feat(plugin): adding event bus channels
+
 ## 1.1.0
 
 ### Minor Changes
