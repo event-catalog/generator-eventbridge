@@ -17,6 +17,7 @@ export type Event = {
   accountId?: string;
   jsonDraftFileName: string;
   openApiFileName: string;
+  eventBusName?: string;
 };
 
 export type Domain = {
@@ -31,6 +32,7 @@ export type Filter = {
   suffix?: string | string[];
   includes?: string;
   detailType?: string | string[];
+  eventBusName?: string;
 };
 
 export type Service = {

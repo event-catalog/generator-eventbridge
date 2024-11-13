@@ -10,6 +10,9 @@ import {
   ListSchemasCommand,
   SchemasClient,
 } from '@aws-sdk/client-schemas';
+
+import { DescribeEventBusCommand, DescribeEventBusCommandOutput } from '@aws-sdk/client-eventbridge';
+
 import { existsSync } from 'node:fs';
 
 const setupMocks = () => {
@@ -60,6 +63,29 @@ const setupMocks = () => {
       DescribeSchemaCommand: vi.fn(),
       ListSchemasCommand: vi.fn(),
       ExportSchemaCommand: vi.fn(),
+    };
+  });
+  // Mock the entire @aws-sdk/client-schemas module
+  vi.mock('@aws-sdk/client-eventbridge', () => {
+    return {
+      EventBridgeClient: vi.fn(() => ({
+        send: vi.fn((command) => {
+          if (command instanceof DescribeEventBusCommand) {
+            return Promise.resolve({
+              Arn: 'arn:aws:events:us-east-1:123456789012:event-bus/demo',
+              Name: 'demo',
+              Description: 'My event bus',
+              $metadata: {
+                httpStatusCode: 200,
+                requestId: 'mock-request-id',
+                extendedRequestId: 'mock-extended-request-id',
+                cfId: 'mock-cf-id',
+              },
+            } as DescribeEventBusCommandOutput);
+          }
+        }),
+      })),
+      DescribeEventBusCommand: vi.fn(),
     };
   });
 };
@@ -256,6 +282,7 @@ describe('EventBridge EventCatalog Plugin', () => {
         expect(event).toEqual({
           id: 'UserSignedUp',
           name: 'UserSignedUp',
+          channels: [],
           version: '1',
           markdown: expect.any(String),
           schemaPath: 'myapp.users@UserSignedUp-jsondraft.json',
@@ -474,6 +501,7 @@ describe('EventBridge EventCatalog Plugin', () => {
         expect(event).toEqual({
           id: 'UserSignedUp',
           name: 'UserSignedUp',
+          channels: [],
           version: '1',
           markdown: expect.any(String),
           schemaPath: 'myapp.users@UserSignedUp-jsondraft.json',
@@ -702,6 +730,111 @@ describe('EventBridge EventCatalog Plugin', () => {
 
         expect(jsonDraftSchema).toBeDefined();
         expect(openAPISchema).toBeDefined();
+      });
+    });
+  });
+
+  describe('channels', () => {
+    it('when an eventBusName is not provided for a service (sends or receives) no channel is created', async () => {
+      const { getChannel } = utils(catalogDir);
+
+      await plugin(config, {
+        region: 'us-east-1',
+        registryName: 'discovered-schemas',
+        services: [
+          {
+            id: 'Orders Service',
+            version: '1.0.0',
+            sends: [{ source: ['myapp.orders'] }],
+          },
+        ],
+      });
+
+      const channel = await getChannel('demo');
+
+      expect(channel).toBeUndefined();
+    });
+
+    it('when an eventBusName is provided for a service (sends or receives) a channel is created', async () => {
+      const { getChannel } = utils(catalogDir);
+
+      await plugin(config, {
+        region: 'us-east-1',
+        registryName: 'discovered-schemas',
+        services: [
+          {
+            id: 'Orders Service',
+            version: '1.0.0',
+            sends: [{ source: ['myapp.orders'], eventBusName: 'demo' }],
+          },
+        ],
+      });
+
+      const channel = await getChannel('demo');
+
+      expect(channel).toEqual({
+        id: 'demo',
+        name: 'EventBridge: demo',
+        version: '1.0.0',
+        address: 'arn:aws:events:us-east-1:123456789012:event-bus/demo',
+        protocols: ['eventbridge'],
+        summary: 'Amazon EventBridge: My event bus',
+        markdown:
+          '## Overview\n  \n  Documentation for the Amazon EventBridge Event Bus: demo.\n  \n  <Tiles >\n      <Tile icon="GlobeAltIcon" href="https://undefined.console.aws.amazon.com/events/home?region=undefined#/eventbus/demo" openWindow={true} title="Open event bus" description="Open the demo bus in the AWS console" />\n      <Tile icon="GlobeAltIcon" href="https://undefined.console.aws.amazon.com/events/home?region=undefined#/rules/create?demo" openWindow={true} title="Create new rule" description="Create a new rule for the demo bus" />\n      <Tile icon="CodeBracketIcon" href="https://undefined.console.aws.amazon.com/events/home?region=undefined#/eventbuses/sendevents?eventBus=demo" openWindow={true} title="Send test events" description="Send test events to demo in the AWS console." />\n      <Tile icon="ChartBarSquareIcon" href="https://undefined.console.aws.amazon.com/events/home?region=undefined#/eventbus/demo?tab=MONITORING" title="Monitoring" description="AWS dashboard that shows metrics for all event buses" />\n  </Tiles>',
+      });
+    });
+
+    it('when an eventBusName is provided for a service (sends or receives), and the channel is already created, no new channel is created', async () => {
+      const { getChannel, writeChannel } = utils(catalogDir);
+
+      const channelData = {
+        id: 'demo',
+        name: 'EventBridge: demo',
+        version: '0.0.1',
+        address: 'arn:aws:events:us-east-1:123456789012:event-bus/demo',
+        protocols: ['eventbridge'],
+        summary: 'Amazon EventBridge: My event bus',
+        markdown: 'Some markdown',
+      };
+
+      await writeChannel(channelData);
+
+      await plugin(config, {
+        region: 'us-east-1',
+        registryName: 'discovered-schemas',
+        services: [
+          {
+            id: 'Orders Service',
+            version: '1.0.0',
+            sends: [{ source: ['myapp.orders'], eventBusName: 'demo' }],
+          },
+        ],
+      });
+
+      const channel = await getChannel('demo');
+
+      expect(channel).toEqual(channelData);
+    });
+
+    it('when an eventBusName is provided for a service (sends or receives), and messages are assigned to the channel', async () => {
+      const { getEvent, getService } = utils(catalogDir);
+
+      await plugin(config, {
+        region: 'us-east-1',
+        registryName: 'discovered-schemas',
+        services: [{ id: 'Orders Service', version: '1.0.0', sends: [{ detailType: 'UserSignedUp', eventBusName: 'demo' }] }],
+      });
+
+      const event = await getEvent('UserSignedUp');
+
+      expect(event).toEqual({
+        id: 'UserSignedUp',
+        name: 'UserSignedUp',
+        channels: [{ id: 'demo', version: 'latest' }],
+        version: '1',
+        markdown: expect.any(String),
+        schemaPath: 'myapp.users@UserSignedUp-jsondraft.json',
+        badges: expect.anything(),
       });
     });
   });
