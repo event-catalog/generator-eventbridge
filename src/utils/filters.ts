@@ -6,11 +6,12 @@ const createFilterFunction = (filterKey: 'detailType' | 'prefix' | 'suffix' | 's
       if (!filters.some((filter) => filter[filterKey])) {
         return []; // if no filters for this key, return empty array
       }
-      return events.filter((event) => {
-        return filters.some((filter) => {
-          if (!filter[filterKey]) return false;
+      return events.reduce((acc: Event[], event) => {
+        filters.forEach((filter) => {
+          const { eventBusName } = filter;
+          if (!filter[filterKey]) return;
           const filterValues = Array.isArray(filter[filterKey]) ? filter[filterKey] : [filter[filterKey]];
-          return filterValues.some((value) => {
+          const isMatch = filterValues.some((value) => {
             switch (filterKey) {
               case 'detailType':
                 return event.detailType === value;
@@ -22,8 +23,12 @@ const createFilterFunction = (filterKey: 'detailType' | 'prefix' | 'suffix' | 's
                 return event.source === value;
             }
           });
+          if (isMatch) {
+            acc.push({ ...event, eventBusName });
+          }
         });
-      });
+        return acc;
+      }, []);
     };
   };
 };

@@ -15,7 +15,9 @@ import checkLicense from './checkLicense';
 import { defaultMarkdown as generateMarkdownForService } from './utils/services';
 import { defaultMarkdown as generateMarkdownForDomain } from './utils/domains';
 import { defaultMarkdown as generateMarkdownForMessage, getBadgesForMessage } from './utils/messages';
+import { generatedMarkdownByEventBus } from './utils/channel';
 import { parse } from '@aws-sdk/util-arn-parser';
+import { DescribeEventBusCommand, EventBridgeClient } from '@aws-sdk/client-eventbridge';
 
 async function tryFetchJSONSchema(
   schemasClient: SchemasClient,
@@ -274,13 +276,15 @@ export default async (config: EventCatalogConfig, options: GeneratorProps) => {
 const processEvents = async (events: Event[], options: GeneratorProps) => {
   // This is set by EventCatalog. This is the directory where the catalog is stored
   const eventCatalogDirectory = process.env.PROJECT_DIR;
+  const eventBridgeClient = new EventBridgeClient({ region: options.region, credentials: options.credentials });
 
   if (!eventCatalogDirectory) {
     throw new Error('Please provide catalog url (env variable PROJECT_DIR)');
   }
 
   // EventCatalog SDK (https://www.eventcatalog.dev/docs/sdk)
-  const { getEvent, writeEvent, addSchemaToEvent, rmEventById, versionEvent } = utils(eventCatalogDirectory);
+  const { getEvent, writeEvent, addSchemaToEvent, rmEventById, versionEvent, writeChannel, getChannel } =
+    utils(eventCatalogDirectory);
 
   for (const event of events) {
     // in custom registries detailType is not a value, so we use schema name
@@ -289,6 +293,7 @@ const processEvents = async (events: Event[], options: GeneratorProps) => {
     const schemaPath = event.jsonSchema ? event.jsonDraftFileName : event.openApiSchema ? event.openApiFileName : '';
     let messageMarkdown = generateMarkdownForMessage(event);
     const catalogedEvent = await getEvent(event.id, event.version);
+    let eventChannel = [] as any;
 
     if (catalogedEvent) {
       // Persist markdown between versions
@@ -304,6 +309,46 @@ const processEvents = async (events: Event[], options: GeneratorProps) => {
       }
     }
 
+    // If we have defined an eventbus for this event (channel), we document it
+    if (event.eventBusName) {
+      const channel = await getChannel(event.eventBusName);
+
+      if (!channel) {
+        let name = event.eventBusName;
+        let address = '';
+        let summary = 'Amazon EventBridge event bus';
+        let markdown =
+          'This EventBridge Event Bus serves as a message routing system on AWS. It handles events and routes them to targets.';
+
+        try {
+          console.log('GO');
+          const eventBusCommand = new DescribeEventBusCommand({
+            Name: event.eventBusName,
+          });
+          const response = await eventBridgeClient.send(eventBusCommand);
+          name = response.Name || event.eventBusName;
+          address = response.Arn || '';
+          summary = `Amazon EventBridge: ${response.Description}` || 'Amazon EventBridge event bus';
+          markdown = generatedMarkdownByEventBus(event, response);
+        } catch (error) {
+          console.log(error);
+          // Do nothing, fall back.
+        }
+
+        await writeChannel({
+          id: event.eventBusName,
+          name: `EventBridge: ${name}`,
+          markdown,
+          version: '1.0.0', // hardcode for now, what would this be?
+          address,
+          protocols: ['eventbridge'],
+          summary,
+        });
+      }
+
+      eventChannel = [{ id: event.eventBusName, version: 'latest' }];
+    }
+
     await writeEvent({
       id: event.id,
       name: event.id,
@@ -311,6 +356,7 @@ const processEvents = async (events: Event[], options: GeneratorProps) => {
       schemaPath,
       markdown: messageMarkdown,
       badges: getBadgesForMessage(event, options.eventBusName),
+      channels: eventChannel,
     });
 
     console.log(chalk.cyan(` - Event (${event.id} v${event.version}) created`));
