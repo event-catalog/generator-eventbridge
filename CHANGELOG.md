@@ -1,5 +1,11 @@
 # @eventcatalog/generator-eventbridge
 
+## 1.2.1
+
+### Patch Changes
+
+- 01604c2: chore(plugin):added dashboard link to generator
+
 ## 1.2.0
 
 ### Minor Changes
