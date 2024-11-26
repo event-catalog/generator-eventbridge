@@ -1,5 +1,11 @@
 # @eventcatalog/generator-eventbridge
 
+## 1.2.2
+
+### Patch Changes
+
+- a85b2dd: fix(plugin): set default value for plugin DIR
+
 ## 1.2.1
 
 ### Patch Changes
