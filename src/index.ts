@@ -129,6 +129,10 @@ const fetchSchemasForRegistry =
   };
 
 export default async (config: EventCatalogConfig, options: GeneratorProps) => {
+  if (!process.env.PROJECT_DIR) {
+    process.env.PROJECT_DIR = process.cwd();
+  }
+
   // This is set by EventCatalog. This is the directory where the catalog is stored
   const eventCatalogDirectory = process.env.PROJECT_DIR;
   const { services, region, mapEventsBy = 'detail-type' } = options;
