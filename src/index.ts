@@ -136,7 +136,7 @@ export default async (config: EventCatalogConfig, options: GeneratorProps) => {
   // This is set by EventCatalog. This is the directory where the catalog is stored
   const eventCatalogDirectory = process.env.PROJECT_DIR;
   const { services, region, mapEventsBy = 'detail-type' } = options;
-  const schemasClient = new SchemasClient({ region, credentials: config.credentials });
+  const schemasClient = new SchemasClient({ region, credentials: options.credentials });
 
   if (!eventCatalogDirectory) {
     throw new Error('Please provide catalog url (env variable PROJECT_DIR)');
