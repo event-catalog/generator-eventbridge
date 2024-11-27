@@ -1,5 +1,11 @@
 # @eventcatalog/generator-eventbridge
 
+## 1.2.3
+
+### Patch Changes
+
+- 3e464f7: fix(plugin): fixed bug with passing credentials to AWS
+
 ## 1.2.2
 
 ### Patch Changes
