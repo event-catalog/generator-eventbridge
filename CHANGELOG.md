@@ -1,5 +1,11 @@
 # @eventcatalog/generator-eventbridge
 
+## 1.2.4
+
+### Patch Changes
+
+- 48f2642: fix(plugin): detail-type matching is now lowercase
+
 ## 1.2.3
 
 ### Patch Changes
