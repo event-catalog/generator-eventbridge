@@ -290,6 +290,32 @@ describe('EventBridge EventCatalog Plugin', () => {
         });
       });
 
+      it('maps EventBridge events matching the given `detailType` even when the case in the detail type is different into the given service', async () => {
+        const { getEvent, getService } = utils(catalogDir);
+
+        await plugin(config, {
+          region: 'us-east-1',
+          registryName: 'discovered-schemas',
+          services: [{ id: 'Orders Service', version: '1.0.0', sends: [{ detailType: 'usersignedup' }] }],
+        });
+
+        const event = await getEvent('UserSignedUp');
+        const service = await getService('Orders Service');
+
+        expect(service.sends?.length).toEqual(1);
+        expect(service.sends?.[0]).toEqual({ id: 'UserSignedUp', version: '1' });
+
+        expect(event).toEqual({
+          id: 'UserSignedUp',
+          name: 'UserSignedUp',
+          channels: [],
+          version: '1',
+          markdown: expect.any(String),
+          schemaPath: 'myapp.users@UserSignedUp-jsondraft.json',
+          badges: expect.anything(),
+        });
+      });
+
       it('maps EventBridge events matching multiple `detailType` values into the given service', async () => {
         const { getEvent, getService } = utils(catalogDir);
 
