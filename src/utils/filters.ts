@@ -14,13 +14,13 @@ const createFilterFunction = (filterKey: 'detailType' | 'prefix' | 'suffix' | 's
           const isMatch = filterValues.some((value) => {
             switch (filterKey) {
               case 'detailType':
-                return event.detailType === value;
+                return event.detailType.toLowerCase() === value.toLowerCase();
               case 'prefix':
                 return event.schemaName.startsWith(value);
               case 'suffix':
                 return event.schemaName.endsWith(value);
               case 'source':
-                return event.source === value;
+                return event.source.toLowerCase() === value.toLowerCase();
             }
           });
           if (isMatch) {
