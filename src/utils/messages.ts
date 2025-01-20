@@ -67,7 +67,9 @@ export const getBadgesForMessage = (event: Event, eventBus?: string) => {
   }
 
   badges.push({ content: `Source: ${event.source}`, backgroundColor: 'pink', textColor: 'pink' });
-  badges.push({ content: `DetailType: ${event.detailType}`, backgroundColor: 'pink', textColor: 'pink' });
+  if (event.detailType){
+    badges.push({ content: `DetailType: ${event.detailType}`, backgroundColor: 'pink', textColor: 'pink' });
+  }
   badges.push({ content: `Schema name: ${event.schemaName}`, backgroundColor: 'pink', textColor: 'pink' });
 
   return badges;
