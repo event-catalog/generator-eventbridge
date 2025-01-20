@@ -282,7 +282,6 @@ describe('EventBridge EventCatalog Plugin', () => {
         expect(event).toEqual({
           id: 'UserSignedUp',
           name: 'UserSignedUp',
-          // channels: [],
           version: '1',
           markdown: expect.any(String),
           schemaPath: 'myapp.users@UserSignedUp-jsondraft.json',
