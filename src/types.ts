@@ -45,6 +45,7 @@ export type Service = {
 export type EventMap = 'detail-type' | 'schema-name';
 
 export type GeneratorProps = {
+  licenseKey?: string;
   region: string;
   registryName: string;
   eventBusName?: string;

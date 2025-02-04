@@ -142,6 +142,8 @@ export default async (config: EventCatalogConfig, options: GeneratorProps) => {
     throw new Error('Please provide catalog url (env variable PROJECT_DIR)');
   }
 
+  await checkLicense(options.licenseKey);
+
   // EventCatalog SDK (https://www.eventcatalog.dev/docs/sdk)
   const {
     writeService,
@@ -273,8 +275,6 @@ export default async (config: EventCatalogConfig, options: GeneratorProps) => {
   }
 
   console.log(chalk.green(`\nFinished generating event catalog with EventBridge schema registry ${options.registryName}`));
-
-  await checkLicense();
 };
 
 const processEvents = async (events: Event[], options: GeneratorProps) => {
