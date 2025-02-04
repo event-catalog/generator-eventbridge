@@ -1,5 +1,11 @@
 # @eventcatalog/generator-eventbridge
 
+## 1.2.5
+
+### Patch Changes
+
+- 9038877: chore(plugin): added checks for license
+
 ## 1.2.4
 
 ### Patch Changes
