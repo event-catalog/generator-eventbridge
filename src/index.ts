@@ -360,7 +360,7 @@ const processEvents = async (events: Event[], options: GeneratorProps) => {
       schemaPath,
       markdown: messageMarkdown,
       badges: getBadgesForMessage(event, options.eventBusName),
-      channels: eventChannel,
+      ...(eventChannel.length > 0 && { channels: eventChannel }),
     });
 
     console.log(chalk.cyan(` - Event (${event.id} v${event.version}) created`));
