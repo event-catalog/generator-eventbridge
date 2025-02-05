@@ -1,5 +1,11 @@
 # @eventcatalog/generator-eventbridge
 
+## 1.2.6
+
+### Patch Changes
+
+- a7814c1: fix(channels): only adding channels into the service when there are to fix
+
 ## 1.2.5
 
 ### Patch Changes

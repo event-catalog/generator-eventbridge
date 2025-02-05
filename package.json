@@ -1,6 +1,6 @@
 {
   "name": "@eventcatalog/generator-eventbridge",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Amazon EventBridge generator for EventCatalog",
   "scripts": {
     "build": "tsup",
